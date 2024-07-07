@@ -8,9 +8,16 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddAPI(this IServiceCollection services, IConfiguration configuration)
     {
-        string? connectionString = configuration.GetConnectionString("DefaultConnection");
+        // Local Configuration.
+        // string? connectionString = configuration.GetConnectionString("DefaultConnection");
+        //
+        // services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
 
-        services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+        // Docker Configuratio.
+        string? connectionString = configuration.GetConnectionString("Postgres-Docker");
+
+        services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
+
 
         services.AddScoped<IDbContext>(serviceProvider => serviceProvider.GetRequiredService<AppDbContext>());
 
@@ -19,5 +26,15 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
 
         return services;
+    }
+
+    public static void ApplyMigration(this IApplicationBuilder app)
+    {
+        using IServiceScope scope = app.ApplicationServices.CreateScope();
+
+        using AppDbContext dbContext =
+            scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        dbContext.Database.Migrate();
     }
 }

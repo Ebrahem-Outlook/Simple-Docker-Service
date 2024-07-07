@@ -22,6 +22,7 @@ namespace API
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
+                app.ApplyMigration();
             }
 
             app.UseHttpsRedirection();
